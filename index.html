@@ -1,0 +1,557 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Digitaal Dieet bonnetje</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@100..125,400..900&display=swap">
+<style>
+  /* One column on the green field: the receipt image, then the share and download buttons. */
+  :root { --veld: #67C27E; --roze: #FF8AD8; --font: 'Archivo', system-ui, -apple-system, 'Segoe UI', sans-serif;
+    --ext4: 1px 1px 0 #000, 2px 2px 0 #000, 3px 3px 0 #000, 4px 4px 0 #000; color-scheme: light; }
+  * { box-sizing: border-box; }
+  [hidden] { display: none !important; }
+  body { margin: 0; background: var(--veld); color: #000; font-family: var(--font); -webkit-font-smoothing: antialiased; }
+  main { max-width: 460px; margin: 0 auto; padding: 20px 16px 48px; display: flex; flex-direction: column; gap: 16px; }
+  .bon { width: 100%; aspect-ratio: 9 / 16; display: block; }
+  .knop { min-height: 56px; padding: 12px 18px; border: 3px solid #000; background: var(--roze); color: #000; font: 900 18px var(--font);
+    cursor: pointer; box-shadow: var(--ext4); }
+  .knop.wit { background: #fff; }
+  .knop:active { transform: translate(4px, 4px); box-shadow: none; }
+  .knop:disabled { opacity: .5; cursor: wait; }
+  .status { margin: 0; min-height: 1.4em; font-size: 14px; font-weight: 700; text-align: center; }
+  .klein { margin: 0; font-size: 13px; font-weight: 600; text-align: center; }
+  .fout { background: #fff; border: 3px solid #000; padding: 18px; font-size: 16px; font-weight: 600; }
+  :focus-visible { outline: 3px solid #000; outline-offset: 3px; }
+</style>
+</head>
+<body>
+<main>
+  <img class="bon" id="bon" alt="">
+  <button type="button" class="knop" id="deel"></button>
+  <button type="button" class="knop wit" id="download"></button>
+  <p class="status" id="status" aria-live="polite"></p>
+  <p class="klein" id="over"></p>
+  <div class="fout" id="fout" hidden></div>
+</main>
+<script>
+/* Digitaal Dieet bonnetje: shared by the experiment, the test page and the public bonnetje page. */
+const BON = (() => {
+const S = 'stroke="#000" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"';
+const FOOD = {
+  maki:     { top: -13,   face: [0, 3, 0.85],   body: `<circle r="13" fill="#2F4F3A" ${S}/><circle r="10" fill="#fff" stroke="#000" stroke-width="1.6"/><ellipse cy="-4.6" rx="4.6" ry="3" fill="#FF8A65" stroke="#000" stroke-width="1.4"/>` },
+  macaron:  { top: -11,   face: [0, 5.6, 0.75], body: `<rect x="-13" y="-11" width="26" height="9" rx="4.5" fill="#FFA6DD" ${S}/><rect x="-12" y="-3" width="24" height="4.5" rx="2.2" fill="#fff" stroke="#000" stroke-width="1.6"/><rect x="-13" y="1" width="26" height="10" rx="5" fill="#FFA6DD" ${S}/>` },
+  thee:     { top: -8,    face: [-2, 2.5, 0.8], body: `<path d="M8.5 -2 h3 a4 4 0 0 1 0 8 h-3.5" fill="none" stroke="#000" stroke-width="2.2" stroke-linecap="round"/><path d="M-12 -6 h20 v8 a10 8.5 0 0 1 -20 0 z" fill="#fff" ${S}/><ellipse cx="-2" cy="-6" rx="10" ry="2.6" fill="#8CCB5E" ${S}/>` },
+  ei:       { top: -13.5, face: [0, 5, 0.75],   body: `<ellipse rx="11" ry="13.5" fill="#fff" ${S}/><circle cy="-3.5" r="5.5" fill="#FFC93C" stroke="#000" stroke-width="1.6"/>` },
+  onigiri:  { top: -13,   face: [0, -0.5, 0.8], body: `<path d="M0 -13 C4 -13 14 5 13 9 C12 12.5 -12 12.5 -13 9 C-14 5 -4 -13 0 -13Z" fill="#fff" ${S}/><rect x="-6.5" y="5" width="13" height="7.3" rx="1.2" fill="#2F4F3A" stroke="#000" stroke-width="1.6"/>` },
+  tamago:   { top: -8,    face: [0, 2, 0.8],    body: `<rect x="-13" y="-8" width="26" height="16" rx="4.5" fill="#FFD84D" ${S}/><path d="M-10 -3.5h20" stroke="#E0A800" stroke-width="1.3" stroke-linecap="round"/>` },
+  aardbei:  { top: -10,   face: [0, 1.5, 0.8],  body: `<path d="M0 13 C-8 9 -13 2 -12 -4 C-11 -10 -4 -10 0 -8 C4 -10 11 -10 12 -4 C13 2 8 9 0 13Z" fill="#F45B73" ${S}/><path d="M-6 -9 L-2 -11 L0 -14 L2 -11 L6 -9 L2 -8 L0 -6.5 L-2 -8Z" fill="#5BBE5F" stroke="#000" stroke-width="1.5" stroke-linejoin="round"/><g fill="#FFE08A"><circle cx="-7.5" cy="-3" r="0.9"/><circle cx="7.5" cy="-3" r="0.9"/><circle cx="-4" cy="8" r="0.9"/><circle cx="4" cy="8" r="0.9"/></g>` },
+  broccoli: { top: -13.5, face: [0, -1.5, 0.8], body: `<rect x="-3" y="3" width="6" height="10" rx="2.5" fill="#B8E58E" stroke="#000" stroke-width="1.8"/><circle cx="-6.5" cy="-1" r="6.5" fill="#4CB35A" ${S}/><circle cx="6.5" cy="-1" r="6.5" fill="#4CB35A" ${S}/><circle cy="-6" r="7.5" fill="#4CB35A" ${S}/><ellipse cy="-1" rx="8" ry="4.8" fill="#4CB35A"/>` },
+  nigiri:   { top: -8,    face: [0, 5.5, 0.7],  body: `<rect x="-12.5" y="-1" width="25" height="12" rx="6" fill="#fff" ${S}/><path d="M-13.5 0 C-10 -10 10 -10 13.5 0 C8 2.5 -8 2.5 -13.5 0Z" fill="#FF9E7A" ${S}/><path d="M-6 -5 l3 3 M0 -6 l3 3 M6 -5 l2.5 2.5" stroke="#fff" stroke-width="1.4" stroke-linecap="round"/>` },
+  dumpling: { top: -7,    face: [0, 2, 0.8],    body: `<path d="M-14 6 C-13 -9 13 -9 14 6 C9 9 -9 9 -14 6Z" fill="#fff" ${S}/><path d="M-7 -4 l1.4 3 M-2.4 -6 l0.9 3.1 M2.4 -6 l-0.9 3.1 M7 -4 l-1.4 3" stroke="#000" stroke-width="1.4" stroke-linecap="round"/>` },
+  snoep:    { top: -8.5,  face: [0, 0, 0.75],   body: `<path d="M-7 0 L-14 -7 L-14 7 Z M7 0 L14 -7 L14 7 Z" fill="#FFC93C" stroke="#000" stroke-width="1.8" stroke-linejoin="round"/><circle r="8.5" fill="#FF6FAE" ${S}/>` },
+  noedels:  { top: -10,   face: [0, 3.5, 0.8],  body: `<path d="M-10 -3 C-10 -10 -4 -10 -4 -3 M-4 -3 C-4 -12.5 3 -12.5 3 -3 M3 -3 C3 -10 10 -10 10 -3" fill="#FFD66B" stroke="#000" stroke-width="1.6"/><path d="M-14 -3 H14 C14 7 7 12 0 12 C-7 12 -14 7 -14 -3Z" fill="#8EC5FF" ${S}/>` },
+  dango:    { top: -12,   face: [0, 0, 0.5],    body: `<path d="M-13 13 L13 -13" stroke="#000" stroke-width="3.6" stroke-linecap="round"/><path d="M-13 13 L13 -13" stroke="#E8C38A" stroke-width="1.6" stroke-linecap="round"/><circle cx="-7" cy="7" r="5.6" fill="#FFB3D1" ${S}/><circle cx="7" cy="-7" r="5.6" fill="#A8E07A" ${S}/><circle r="5.8" fill="#fff" ${S}/>` }
+};
+
+
+
+// Categories as in the experiment: label, food, profile word, colour (same pastel as the bento compartments)
+const CATS = [
+  ['entertainment', 'Entertainment', 'maki', 'Sushi', '#FFE07A'],
+  ['lifestyle', 'Lifestyle', 'macaron', 'Macaron', '#C7F0DA'],
+  ['health', 'Gezondheid & Welzijn', 'thee', 'Matcha', '#E3F4C8'],
+  ['fitness', 'Fitness & Voeding', 'ei', 'Eitjes', '#CFE6FF'],
+  ['sport', 'Sport', 'onigiri', 'Onigiri', '#FFB98A'],
+  ['motivation', 'Motivatie & Self-improvement', 'tamago', 'Omelet', '#D9CCFF'],
+  ['relationships', 'Relaties', 'aardbei', 'Aardbei', '#FFD3E0'],
+  ['learning', 'Leren & Vaardigheden', 'broccoli', 'Broccoli', '#C8F2EC'],
+  ['news', 'Nieuws & Samenleving', 'nigiri', 'Nigiri', '#E1E7EF'],
+  ['ads', 'Reclame', null, null, '#FFEFC9'],
+  ['relatable', 'Relatable', 'dumpling', 'Dumpling', '#BBA8FF'],
+  ['brainrot', 'Brainrot / Low-quality', 'snoep', 'Snoepjes', '#A8EDEA'],
+  ['misleading', 'Misleidend / Fake News', null, null, '#FFE1D6'],
+  ['negative', 'Schadelijk / Toxisch', null, null, '#4A4458'],
+  ['illegal', 'Illegale Content', null, null, '#B9C4D0'],
+  ['other', 'Anders', 'noedels', 'Noedel', '#FFFFFF']
+].map(([value, label, food, naam, bg]) => ({ value, label, food, naam, bg }));
+const FALLBACK = { value: '_bento', label: 'Bento', food: 'dango', naam: 'Bento', bg: '#EDEDED' };
+
+const LEVELS = [
+  { key: 'kruimelaar',  label: 'Kruimelaar',  max: 4,        band: '<5',    zin: 'Je pakt alleen een paar kruimels van je scherm. Lekker bezig!' },
+  { key: 'fijnproever', label: 'Fijnproever', max: 10,       band: '5-10',  zin: 'Je kiest wat je kijkt, en je geniet ervan.' },
+  { key: 'lekkerbek',   label: 'Lekkerbek',   max: 15,       band: '11-15', zin: 'Je smult flink van je scherm. Let op dat het niet meer wordt.' },
+  { key: 'hamster',     label: 'Hamster',     max: 20,       band: '16-20', zin: 'Je propt er best veel in: je wangen zitten aardig vol.' },
+  { key: 'veelvraat',   label: 'Veelvraat',   max: 29,       band: '21-29', zin: 'Je zit vol: je scherm eet een groot deel van je vrije tijd op.' },
+  { key: 'godzilla',    label: 'Godzilla',    max: Infinity, band: '30+',   zin: 'Je scherm slokt bijna al je vrije tijd op.' }
+];
+const levelFor = h => LEVELS.find(l => h <= l.max);
+const levelWord = l => l.key === 'godzilla' ? 'Godzilla' : l.label.toLowerCase();
+
+/* ============================================================
+   Colour helpers (tone-on-tone food in the background)
+   ============================================================ */
+const hex2rgb = h => { h = h.replace('#', ''); if (h.length === 3) h = h.split('').map(c => c + c).join(''); return [0, 2, 4].map(i => parseInt(h.slice(i, i + 2), 16)); };
+const rgb2hex = a => '#' + a.map(v => Math.round(Math.max(0, Math.min(255, v))).toString(16).padStart(2, '0')).join('');
+const mix = (a, b, t) => { const x = hex2rgb(a), y = hex2rgb(b); return rgb2hex(x.map((v, i) => v + (y[i] - v) * t)); };
+const isDark = bg => { const [r, g, b] = hex2rgb(bg); return (0.299 * r + 0.587 * g + 0.114 * b) < 110; };
+const tones = bg => isDark(bg)
+  ? { tone: mix(bg, '#fff', 0.22), line: mix(bg, '#fff', 0.7), light: mix(bg, '#000', 0.4) }
+  : { tone: mix(bg, '#000', 0.12), line: mix(bg, '#000', 0.5), light: mix(bg, '#fff', 0.5) };
+const mono = (svg, t) => svg
+  .replace(/fill="(#[0-9A-Fa-f]{3,8})"/g, (m, c) => `fill="${c.toLowerCase() === '#000' ? t.line : c.toLowerCase() === '#fff' ? t.light : t.tone}"`)
+  .replace(/stroke="(#[0-9A-Fa-f]{3,8})"/g, (m, c) => `stroke="${c.toLowerCase() === '#000' ? t.line : c.toLowerCase() === '#fff' ? t.light : t.tone}"`);
+
+/* ============================================================
+   Faces
+   ============================================================ */
+const blush = (o = 0.9) => `<ellipse cx="-5.8" cy="2.3" rx="2.3" ry="1.4" fill="#FF8FB8" opacity="${o}"/><ellipse cx="5.8" cy="2.3" rx="2.3" ry="1.4" fill="#FF8FB8" opacity="${o}"/>`;
+const eyes = (r = 1.6, hl = 0.55) => `<circle cx="-3.4" r="${r}" fill="#000"/><circle cx="3.4" r="${r}" fill="#000"/><circle cx="${-3.4 + r * 0.32}" cy="${-r * 0.38}" r="${hl}" fill="#fff"/><circle cx="${3.4 + r * 0.32}" cy="${-r * 0.38}" r="${hl}" fill="#fff"/>`;
+const line = (d, w = 1.1) => `<path d="${d}" fill="none" stroke="#000" stroke-width="${w}" stroke-linecap="round" stroke-linejoin="round"/>`;
+const EXPR = {
+  normal:      blush() + eyes() + line('M-1.5 1.7 q1.5 1.5 3 0'),
+  kruimelaar:  blush() + line('M-4.8 0.6 q1.4 -2 2.8 0 M2 0.6 q1.4 -2 2.8 0') + `<path d="M-1.8 1.6 h3.6 q-0.3 2.4 -1.8 2.4 q-1.5 0 -1.8 -2.4z" fill="#3A1F1F" stroke="#000" stroke-width="0.8" stroke-linejoin="round"/><ellipse cy="3.3" rx="0.9" ry="0.55" fill="#FF6F91"/>`,
+  fijnproever: blush() + line('M-5 0.6 q1.6 -2 3.2 0 M1.8 0.6 q1.6 -2 3.2 0') + line('M-1.5 1.8 q1.5 1.5 3 0'),
+  lekkerbek:   `<ellipse cx="-5.8" cy="2.3" rx="2.3" ry="1.4" fill="#FF8FB8" opacity="0.9"/>` + eyes() + line('M-3.2 2.2 q0.9 0.9 1.8 0 q0.9 0.9 1.8 0'),
+  hamster:     eyes(1.8, 0.7) + line('M-2 1.7 q1 1.1 2 0 q1 1.1 2 0'),
+  veelvraat:   blush(1) + line('M-5.2 -0.2 q1.6 1.5 3.2 0 M2 -0.2 q1.6 1.5 3.2 0') + `<ellipse cx="0.4" cy="3.2" rx="1.6" ry="1.4" fill="#3A1F1F" stroke="#000" stroke-width="0.9"/><path d="M-2.6 -3.4 q0 -1 1 -1.2" fill="none" stroke="#000" stroke-width="0" />`,
+  godzilla:    blush(0.35) + eyes() + line('M-5.8 -3 L-2 -1.6 M5.8 -3 L2 -1.6') + `<path d="M-3.2 1.3 h6.4 q-0.4 2.8 -3.2 2.8 q-2.8 0 -3.2 -2.8z" fill="#3A1F1F" stroke="#000" stroke-width="0.8"/><path d="M-2.6 1.3 h1.3 l-0.65 1z M-0.65 1.3 h1.3 l-0.65 1z M1.3 1.3 h1.3 l-0.65 1z" fill="#fff"/>`
+};
+const foodSvg = key => { const f = FOOD[key], [x, y, s] = f.face; return f.body + `<g transform="translate(${x} ${y}) scale(${s})">${EXPR.normal}</g>`; };
+
+/* ============================================================
+   The mascot: a soft mochi, one look per eating style
+   ============================================================ */
+const BODY = 'M-15 12 C-17.5 12 -17.5 5 -16 0 C-13.5 -9 -7.5 -13 0 -13 C7.5 -13 13.5 -9 16 0 C17.5 5 17.5 12 15 12 Z';
+const sparkle = (x, y, s) => `<path transform="translate(${x} ${y}) scale(${s})" d="M0 -5 L1.3 -1.3 L5 0 L1.3 1.3 L0 5 L-1.3 1.3 L-5 0 L-1.3 -1.3Z" fill="#FFE066" stroke="#000" stroke-width="${1 / s}" stroke-linejoin="round"/>`;
+const crumbs = pts => `<g fill="#E8C38A" stroke="#000" stroke-width="0.9">${pts.map(([x, y, r]) => `<circle cx="${x}" cy="${y}" r="${r}"/>`).join('')}</g>`;
+
+const heart = (x, y, s) => `<path transform="translate(${x} ${y}) scale(${s})" d="M0 3 C-4 0 -4.5 -3.5 -2.2 -3.8 C-1 -4 -0.2 -3.2 0 -2.4 C0.2 -3.2 1 -4 2.2 -3.8 C4.5 -3.5 4 0 0 3Z" fill="#FF8FB8" stroke="#000" stroke-width="${0.9 / s}" stroke-linejoin="round"/>`;
+const BODY_SUMO = 'M-20 12 C-23.5 12 -23.5 3 -20.5 -2 C-16.5 -9.5 -9 -12.5 0 -12.5 C9 -12.5 16.5 -9.5 20.5 -2 C23.5 3 23.5 12 20 12 Z';
+let clipN = 0;
+
+function mascot(levelKey, accent = '#FF8AD8') {
+  let fill = '#FFF4E0', back = '', front = '', outside = '', transform = '', belly = '', bodyPath = BODY, faceY = 1.5, shadow = 15;
+  switch (levelKey) {
+    case 'kruimelaar':
+      transform = 'translate(0 4.6) scale(0.62 0.7)'; shadow = 9;
+      outside = sparkle(12, -3, 0.42) + heart(-12, 1, 0.55);
+      break;
+    case 'fijnproever':
+      front = `<g transform="translate(0 -11)"><circle cx="-5" cy="-6" r="4.4" fill="#fff" ${S}/><circle cx="5" cy="-6" r="4.4" fill="#fff" ${S}/><circle cy="-8.6" r="5.2" fill="#fff" ${S}/><rect x="-7.2" y="-5" width="14.4" height="5.4" rx="1" fill="#fff" ${S}/></g>`;
+      outside = `<g transform="rotate(-38 16 2)"><rect x="9" y="0.6" width="17" height="2.2" rx="1.1" fill="#E5B677" stroke="#000" stroke-width="1.2"/><rect x="9" y="4" width="17" height="2.2" rx="1.1" fill="#E5B677" stroke="#000" stroke-width="1.2"/></g>`;
+      break;
+    case 'lekkerbek':
+      // a bit rounder, one cheek full with a bite
+      transform = 'translate(0 0.4) scale(1.08 1)';
+      back = `<ellipse cx="12.4" cy="3.6" rx="8.4" ry="7.6" fill="${fill}" stroke="#000" stroke-width="2.2"/>`;
+      front = `<ellipse cx="12.4" cy="3.6" rx="7.3" ry="6.5" fill="${fill}"/><ellipse cx="13.4" cy="5.4" rx="3.2" ry="2" fill="#FF8FB8" opacity="0.9"/><path d="M9.4 -0.6 q2 -1.6 4.4 -0.6" stroke="#fff" stroke-width="1.6" fill="none" stroke-linecap="round"/>`;
+      outside = sparkle(-16, -7, 0.5) + sparkle(17, -9, 0.38);
+      break;
+    case 'hamster':
+      fill = '#F6D3A6';
+      back = `<circle cx="-9.5" cy="-10" r="4.6" fill="#F6D3A6" ${S}/><circle cx="-9.5" cy="-10" r="2.2" fill="#FFB3C7"/><circle cx="9.5" cy="-10" r="4.6" fill="#F6D3A6" ${S}/><circle cx="9.5" cy="-10" r="2.2" fill="#FFB3C7"/>`;
+      belly = `<ellipse cy="8" rx="9.5" ry="5" fill="#FFF4E0"/>`;
+      front = `<circle cx="-10.5" cy="5" r="5.2" fill="#FFC9DA" stroke="#000" stroke-width="1.6"/><circle cx="10.5" cy="5" r="5.2" fill="#FFC9DA" stroke="#000" stroke-width="1.6"/><circle cx="-12" cy="3.4" r="1.3" fill="#fff"/><circle cx="9" cy="3.4" r="1.3" fill="#fff"/>`;
+      break;
+    case 'veelvraat': {
+      // sumo: wide stance, topknot, belt in the category colour; full after the meal (belly, loosened knot, satisfied puff)
+      bodyPath = BODY_SUMO; faceY = -2; shadow = 22;
+      const id = 'sumo' + (++clipN);
+      back = `<ellipse cx="0" cy="-13.4" rx="3.4" ry="2.6" fill="#3A2A2A" ${S}/><rect x="-1.4" y="-11.6" width="2.8" height="1.6" rx="0.6" fill="${accent}" stroke="#000" stroke-width="1"/>`
+           + `<ellipse cx="-12.5" cy="12.6" rx="5" ry="2.4" fill="${fill}" stroke="#000" stroke-width="1.8"/><ellipse cx="12.5" cy="12.6" rx="5" ry="2.4" fill="${fill}" stroke="#000" stroke-width="1.8"/>`;
+      belly = `<clipPath id="${id}"><path d="${BODY_SUMO}"/></clipPath><g clip-path="url(#${id})">`
+            + `<ellipse cy="5.4" rx="12.5" ry="7" fill="#FFFBF2" stroke="#E6D3B3" stroke-width="1"/><circle cx="0" cy="5" r="0.8" fill="#C9A77A"/>`
+            + `<rect x="-24" y="8.4" width="48" height="4.4" fill="${accent}" stroke="#000" stroke-width="1.6"/></g>`
+            + `<path d="M-2.4 8.4 h4.8 l0.8 5.6 h-6.4z" fill="${accent}" stroke="#000" stroke-width="1.4" stroke-linejoin="round"/>`;
+      front = '';
+      outside = `<g transform="translate(19 -9)" fill="#fff" stroke="#000" stroke-width="1"><circle r="2.4"/><circle cx="2.6" cy="-1.6" r="1.8"/><circle cx="4.4" cy="0.6" r="1.5"/></g>`;
+      break;
+    }
+    case 'godzilla':
+      fill = '#C9EFC0'; transform = 'translate(0 -2) scale(1.2)';
+      back = `<path d="M-12 -6 L-9 -14 L-5.5 -9.5 L-1.5 -18 L2.5 -9.5 L6.5 -14.5 L10 -6 Z" fill="#5BBE5F" ${S}/><path d="M12 7 q9 1 12 -6 q-0.5 9 -10.5 11z" fill="#5BBE5F" ${S}/>`;
+      front = `<path transform="translate(5.8 4.4) scale(1.25)" d="M0 0 q6 -3.5 10 -0.5 q-2 1 -1 3 q-4.5 -1 -9 -2.5z" fill="#FF8A3D" stroke="#000" stroke-width="0.9" stroke-linejoin="round"/>`;
+      break;
+  }
+  const face = `<g transform="translate(0 ${faceY}) scale(1.25)">${EXPR[levelKey]}</g>`;
+  const body = `<path d="${bodyPath}" fill="${fill}" ${S}/>${belly}<path d="M-10 -5.5 q3 -4.5 7.5 -5" stroke="#fff" stroke-width="2.2" fill="none" stroke-linecap="round"/>`;
+  return `<ellipse cy="13.6" rx="${shadow}" ry="2.2" fill="#000" opacity="0.14"/><g class="figuur"><g transform="${transform}">${back}${body}${face}${front}</g>${outside}</g>`;
+}
+
+// belt colour: the category colour, darkened when it is too pale to read against the mochi
+const beltFor = bg => { const [r, g, b] = hex2rgb(bg); return (0.299 * r + 0.587 * g + 0.114 * b) > 215 ? mix(bg, '#000', 0.25) : bg; };
+
+// Mascot in front, the category food tone-on-tone behind it, on a plate in the category colour
+const plateSvg = (cat, levelKey, size, label) => {
+  const t = tones(cat.bg), f = mono(foodSvg(cat.food), t);
+  return `<svg width="${size}" height="${size}" viewBox="-32 -36 64 64" ${label ? `role="img" aria-label="${label}"` : 'aria-hidden="true"'}>
+    <g transform="translate(15 -17) rotate(14) scale(1.05)">${f}</g>
+    <g transform="translate(-19 -9) rotate(-12) scale(0.62)">${f}</g>
+    <g transform="translate(0 4)">${mascot(levelKey, beltFor(cat.bg))}</g>
+  </svg>`;
+};
+const mascotSvg = (levelKey, size, accent) => `<svg width="${size}" height="${size}" viewBox="-28 -34 56 56" aria-hidden="true">${mascot(levelKey, accent)}</svg>`;
+
+const fly = (x, y, r = 0) => `<g transform="translate(${x} ${y}) rotate(${r})"><ellipse cx="-1.6" cy="-1.6" rx="1.7" ry="1.1" fill="#fff" stroke="#000" stroke-width="0.7" transform="rotate(-30 -1.6 -1.6)"/><ellipse cx="1.6" cy="-1.6" rx="1.7" ry="1.1" fill="#fff" stroke="#000" stroke-width="0.7" transform="rotate(30 1.6 -1.6)"/><ellipse rx="1.6" ry="1.9" fill="#2B2B2B"/></g>`;
+const miniFace = (kind, x, y, s = 1) => `<g transform="translate(${x} ${y}) scale(${s})">${{
+  sad:   blush(0.6) + `<circle cx="-3.4" r="1.2" fill="#000"/><circle cx="3.4" r="1.2" fill="#000"/>` + line('M-5 -2.6 l2.6 0.9 M5 -2.6 l-2.6 0.9') + line('M-2 3 q1 -1 2 0 q1 1 2 0'),
+  meh:   blush(0.5) + `<circle cx="-3.4" r="1.2" fill="#000"/><circle cx="3.4" r="1.2" fill="#000"/>` + line('M-1.6 2.6 h3.2'),
+  ok:    EXPR.normal,
+  happy: blush() + eyes(1.7, 0.6) + `<path d="M-2.2 1.4 h4.4 q-0.4 2.8 -2.2 2.8 q-1.8 0 -2.2 -2.8z" fill="#3A1F1F" stroke="#000" stroke-width="0.8"/>`,
+  wow:   blush() + line('M-4.8 0.6 q1.4 -2 2.8 0 M2 0.6 q1.4 -2 2.8 0') + `<path d="M-2.2 1.4 h4.4 q-0.4 2.8 -2.2 2.8 q-1.8 0 -2.2 -2.8z" fill="#3A1F1F" stroke="#000" stroke-width="0.8"/>`
+}[kind]}</g>`;
+
+const DISH_ART = {
+  1: () => `<ellipse cy="20" rx="24" ry="3" fill="#000" opacity="0.12"/>
+    <g fill="#fff" stroke="#000" stroke-width="1"><ellipse cx="-17" cy="18" rx="2.2" ry="1.3"/><ellipse cx="-11" cy="19" rx="2" ry="1.2" transform="rotate(20 -11 19)"/><ellipse cx="14" cy="19" rx="2.1" ry="1.2"/><ellipse cx="20" cy="17.5" rx="1.8" ry="1.1"/></g>
+    <rect x="9" y="12" width="17" height="5" rx="1.5" fill="#E5484D" ${S} transform="rotate(14 17 14)"/>
+    <g transform="rotate(-22 0 10)"><rect x="-15" y="2" width="28" height="16" rx="3" fill="#B8463F" ${S}/><path d="M-11 2 v-3 q0 -3 4 -3 q2 -3 6 -1 q4 -2 6 1 q4 0 4 3 v3" fill="#F2EBD9" ${S}/><rect x="-14" y="2" width="26" height="3" fill="#2B2B2B" opacity="0.15"/>${miniFace('sad', -1, 10, 0.8)}</g>
+    <path d="M-20 -14 q4 -6 8 -1 q4 5 8 -1" fill="none" stroke="#000" stroke-width="0.7" stroke-dasharray="1.4 1.6"/>
+    <path d="M6 -20 q6 -4 10 1 q3 5 8 0" fill="none" stroke="#000" stroke-width="0.7" stroke-dasharray="1.4 1.6"/>
+    ${fly(-21, -15, -20)}${fly(24, -19, 15)}${fly(4, -9, 5)}`,
+  2: () => `<ellipse cy="20" rx="25" ry="3" fill="#000" opacity="0.12"/>
+    <rect x="-25" y="-2" width="50" height="20" rx="3" fill="#F4FBFF" ${S}/>
+    <path d="M-9 4 l2.2 10 l2.2 -10 l2.2 10 l2.2 -10" fill="#7BCB6B" stroke="#000" stroke-width="0.9" stroke-linejoin="round"/>
+    ${[-15, 13].map(x => `<g transform="translate(${x} 8) scale(0.6)"><rect x="-12.5" y="-1" width="25" height="12" rx="6" fill="#fff" ${S}/><path d="M-13.5 0 C-10 -10 10 -10 13.5 0 C8 2.5 -8 2.5 -13.5 0Z" fill="#F9C6B6" ${S}/>${miniFace('meh', 0, 5.6, 0.62)}</g>`).join('')}
+    <g transform="translate(3 13) rotate(-8)"><path d="M-4 0 q4 -3.4 8 0 q-4 3.4 -8 0z M4 0 l2.4 -1.6 v3.2z" fill="#E5484D" stroke="#000" stroke-width="0.9" stroke-linejoin="round"/><circle cx="-1.8" cy="-0.4" r="0.5" fill="#000"/></g>
+    <path d="M-27 -2 v-6 q0 -3 3 -3 h48 q3 0 3 3 v6z" fill="#DDF3FF" fill-opacity="0.7" stroke="#000" stroke-width="1.8" stroke-linejoin="round"/>
+    <path d="M-20 -8 h14" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/>
+    <g transform="translate(15 -12) rotate(10)"><circle r="8.4" fill="#FFC93C" stroke="#000" stroke-width="1.5"/><text y="2.8" text-anchor="middle" font-family="Archivo, sans-serif" font-weight="900" font-size="7.2">-35%</text></g>`,
+  3: () => `<ellipse cy="21" rx="22" ry="3" fill="#000" opacity="0.12"/>
+    <path d="M-6 -24 q-3 4 0 8 q3 4 0 8 M0 -27 q-3 4 0 8 q3 4 0 8 M6 -24 q-3 4 0 8 q3 4 0 8" fill="none" stroke="#000" stroke-width="1.2" stroke-linecap="round" opacity="0.55"/>
+    <g transform="rotate(-24 14 -6)"><rect x="4" y="-18" width="26" height="2.4" rx="1.2" fill="#E5B677" stroke="#000" stroke-width="1.1"/><rect x="4" y="-14" width="26" height="2.4" rx="1.2" fill="#E5B677" stroke="#000" stroke-width="1.1"/></g>
+    <ellipse cy="-1" rx="21" ry="5" fill="#E8A35A" ${S}/>
+    <path d="M-15 -2 q3 -4 6 0 q3 -4 6 0 q3 -4 6 0 q3 -4 6 0 q3 -4 6 0" fill="none" stroke="#FFD66B" stroke-width="2.2" stroke-linecap="round"/>
+    <ellipse cx="9" cy="-3" rx="4.6" ry="3.4" fill="#fff" stroke="#000" stroke-width="1.3"/><circle cx="9" cy="-3" r="2" fill="#FFB020"/>
+    <rect x="-13" y="-6" width="7" height="5" rx="1" fill="#2F4F3A" stroke="#000" stroke-width="1.2" transform="rotate(-10 -10 -4)"/>
+    <path d="M-21 -1 h42 q-2 20 -21 20 q-19 0 -21 -20z" fill="#FF8A65" ${S}/>
+    <path d="M-17 4 h34" stroke="#fff" stroke-width="1.6" stroke-dasharray="3 2.4"/>
+    ${miniFace('ok', 0, 10, 0.85)}`,
+  4: () => `<ellipse cy="19" rx="26" ry="3" fill="#000" opacity="0.12"/>
+    <rect x="-27" y="8" width="54" height="8" rx="2" fill="#E5B677" ${S}/>
+    <rect x="-22" y="15" width="6" height="4" fill="#C9944F" stroke="#000" stroke-width="1.4"/><rect x="16" y="15" width="6" height="4" fill="#C9944F" stroke="#000" stroke-width="1.4"/>
+    ${[[-12, '#FF9E7A'], [12, '#FFD84D']].map(([x, c]) => `<g transform="translate(${x} 1) scale(0.78)"><rect x="-12.5" y="-1" width="25" height="12" rx="6" fill="#fff" ${S}/><path d="M-13.5 0 C-10 -10 10 -10 13.5 0 C8 2.5 -8 2.5 -13.5 0Z" fill="${c}" ${S}/>${miniFace('happy', 0, 5.6, 0.62)}</g>`).join('')}
+    <ellipse cx="0" cy="6" rx="3" ry="2.2" fill="#8CCB5E" stroke="#000" stroke-width="1"/>
+    ${sparkle(-22, -16, 0.45)}${sparkle(23, -12, 0.35)}`,
+  5: () => `<ellipse cy="20" rx="25" ry="3" fill="#000" opacity="0.12"/>
+    <ellipse cy="14" rx="25" ry="5" fill="#fff" ${S}/><ellipse cy="13" rx="18" ry="3" fill="none" stroke="#C9C9C9" stroke-width="1"/>
+    <g transform="translate(0 8) scale(0.72)"><rect x="-12.5" y="-1" width="25" height="12" rx="6" fill="#fff" ${S}/><path d="M-13.5 0 C-10 -10 10 -10 13.5 0 C8 2.5 -8 2.5 -13.5 0Z" fill="#FF7A8A" ${S}/><path d="M-3 -6 l2 -2 l2 2 l2 -2 l1 2" fill="none" stroke="#FFC93C" stroke-width="2.4" stroke-linecap="round"/>${miniFace('wow', 0, 5.6, 0.62)}</g>
+    <g transform="rotate(-28 -20 4)"><path d="M-30 4 a16 14 0 0 1 32 0z" fill="#E3E8EF" ${S}/><circle cx="-14" cy="-11.5" r="2.4" fill="#E3E8EF" stroke="#000" stroke-width="1.6"/><path d="M-24 -2 q3 -6 8 -7" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round"/><rect x="-31" y="3" width="34" height="2.6" rx="1.3" fill="#C8D0DA" stroke="#000" stroke-width="1.4"/></g>
+    ${sparkle(12, -18, 0.6)}${sparkle(23, -6, 0.42)}${sparkle(4, -6, 0.32)}`
+};
+
+const REVIEWS = [
+  { stars: 1, label: 'Gevallen bento',  zin: 'Bah. Hier zou je zelf niet eens voor betalen.' },
+  { stars: 2, label: 'Supermarktsushi', zin: 'Het vult wel, maar echt lekker vond je het niet.' },
+  { stars: 3, label: 'Ramenkraampje',   zin: 'Een prima hap, maar niks bijzonders.' },
+  { stars: 4, label: 'Sushibar',        zin: 'Je vond je feed echt lekker.' },
+  { stars: 5, label: 'Sterrenchef',     zin: 'Helemaal naar je smaak: topkwaliteit op je bord.' }
+];
+// bands: below 3, 3 to 4.99, 5 to 6.99, 7 to 8.99, 9 and up give 1 to 5 stars
+const starsFor = avg => avg < 3 ? 1 : avg < 5 ? 2 : avg < 7 ? 3 : avg < 9 ? 4 : 5;
+const BANDS = ['1-2', '3-4', '5-6', '7-8', '9-10'];
+const STAR = 'M0 -10 L2.9 -3.6 L9.5 -3.1 L4.5 1.4 L5.9 8.1 L0 4.6 L-5.9 8.1 L-4.5 1.4 L-9.5 -3.1 L-2.9 -3.6Z';
+const starRow = (n, size = 28) => Array.from({ length: 5 }, (_, i) =>
+  `<svg width="${size}" height="${size}" viewBox="-11 -11 22 21" aria-hidden="true"><path d="${STAR}" fill="${i < n ? '#FFC93C' : '#fff'}" stroke="#000" stroke-width="1.8" stroke-linejoin="round"/></svg>`).join('');
+const dishArt = (n, size) => `<svg width="${size}" height="${size}" viewBox="-32 -30 64 54" aria-hidden="true">${DISH_ART[n]()}</svg>`;
+
+
+/* ============================================================
+   The shareable receipt ("bonnetje"): one SVG of 1080 x 1920 (9:16 story),
+   rendered to PNG in the browser and shared via the phone's share sheet.
+   ============================================================ */
+const B_W = 1080, B_H = 1920;
+const FONT_URL = 'https://cdn.jsdelivr.net/npm/@fontsource-variable/archivo@5.3.0/files/archivo-latin-standard-normal.woff2';
+const esc = t => String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+let FONT_CSS = '';
+
+// The font has to live inside the SVG, otherwise the PNG falls back to a system font.
+async function loadFontCss() {
+  if (FONT_CSS) return FONT_CSS;
+  try {
+    // offline build: the font is already inlined as a data URL in a <style>
+    const inline = [...document.querySelectorAll('style')].map(s => s.textContent).join('\n')
+      .match(/url\((data:font\/woff2;base64,[^)]+)\)/);
+    let url = inline && inline[1];
+    if (!url) {
+      const blob = await (await fetch(FONT_URL)).blob();
+      url = await new Promise(res => { const fr = new FileReader(); fr.onload = () => res(fr.result); fr.readAsDataURL(blob); });
+    }
+    FONT_CSS = `@font-face{font-family:'BonFont';src:url(${url}) format('woff2');font-weight:100 900;}`;
+  } catch (e) { FONT_CSS = ''; }
+  return FONT_CSS;
+}
+
+// Text width for layout (dot leaders, badge size). Uses the page font, which is the same Archivo.
+const measureCtx = document.createElement('canvas').getContext('2d');
+const textW = (txt, size, weight = 700) => { measureCtx.font = `${weight} ${size}px Archivo, system-ui, sans-serif`; return measureCtx.measureText(txt).width; };
+
+// Deterministic barcode from the profile name
+const barcode = (seed, x, y, w, h) => {
+  let n = [...seed].reduce((a, c) => (a * 31 + c.charCodeAt(0)) >>> 0, 7), out = '', cx = x;
+  while (cx < x + w) {
+    n = (n * 1103515245 + 12345) >>> 0;
+    const bw = 3 + (n >> 8) % 9, gap = 3 + (n >> 16) % 7;
+    if (cx + bw > x + w) break;
+    out += `<rect x="${cx}" y="${y}" width="${bw}" height="${h}" fill="#000"/>`;
+    cx += bw + gap;
+  }
+  return out;
+};
+
+// Receipt outline with zigzag top and bottom edges
+const receiptPath = (x0, y0, x1, y1, tooth = 26, depth = 14) => {
+  const n = Math.floor((x1 - x0) / tooth), step = (x1 - x0) / n;
+  let d = `M${x0} ${y0 + depth}`;
+  for (let i = 0; i < n; i++) d += ` L${x0 + step * (i + 0.5)} ${y0} L${x0 + step * (i + 1)} ${y0 + depth}`;
+  d += ` L${x1} ${y1 - depth}`;
+  for (let i = n; i > 0; i--) d += ` L${x0 + step * (i - 0.5)} ${y1} L${x0 + step * (i - 1)} ${y1 - depth}`;
+  return d + 'Z';
+};
+
+/* p = { dish, level, top: [{cat, pct}], skipPct, hours, avg, app, date } */
+function bonnetjeSvg(p) {
+  const X0 = 110, X1 = 970, Y0 = 70, Y1 = 1862, L = X0 + 56, R = X1 - 56, CX = 540;
+  const T = (x, y, size, txt, { w = 700, anchor = 'start', fill = '#000', ls = 0 } = {}) =>
+    `<text x="${x}" y="${y}" font-size="${size}" font-weight="${w}" text-anchor="${anchor}" fill="${fill}"${ls ? ` letter-spacing="${ls}"` : ''}>${esc(txt)}</text>`;
+  const dash = y => `<line x1="${L}" y1="${y}" x2="${R}" y2="${y}" stroke="#000" stroke-width="4" stroke-dasharray="14 10"/>`;
+  const leader = (x1, x2, y) => x2 - x1 > 20 ? `<line x1="${x1}" y1="${y}" x2="${x2}" y2="${y}" stroke="#000" stroke-width="4" stroke-dasharray="1 11" stroke-linecap="round"/>` : '';
+  const row = (y, label, value, tile) => {
+    const lx = tile ? L + 80 : L, size = 34;
+    const vW = textW(value, 36, 900);
+    return (tile || '') + T(lx, y + 12, size, label, { w: 700 }) + leader(lx + textW(label, size, 700) + 16, R - vW - 16, y + 6) + T(R, y + 12, 36, value, { w: 900, anchor: 'end' });
+  };
+  const tile = (cat, y) => {
+    const t = tones(cat.bg);
+    return `<rect x="${L}" y="${y - 30}" width="60" height="60" rx="14" fill="${cat.bg}" stroke="#000" stroke-width="4"/>
+      <g transform="translate(${L + 30} ${y}) scale(1.6)">${foodSvg(cat.food)}</g>`;
+  };
+
+  const S = BON_STR[p.lang], name = p.name;
+  const nameSize = Math.min(64, 64 * 660 / Math.max(1, textW(name, 64, 900)));
+  const nameW = textW(name, nameSize, 900) + 64;
+  const review = p.review;
+  const labW = review ? textW(review.label, 42, 900) + 36 : 0;
+  const plateF = mono(foodSvg(p.dish.food), tones(p.dish.bg));
+  const grade = p.avg.toFixed(1).replace('.', p.lang === 'nl' ? ',' : '.');
+
+  let y = 0;
+  const body = [];
+  body.push(T(CX, 184, 78, S.title, { w: 900, anchor: 'middle', ls: 2 }));
+  body.push(T(CX, 234, 30, S.sub, { w: 800, anchor: 'middle', ls: 10 }));
+  body.push(T(CX, 278, 26, [p.date, p.app].filter(Boolean).join('  ·  '), { w: 600, anchor: 'middle', fill: '#444' }));
+  body.push(dash(310));
+
+  // profile: plate + badge
+  body.push(T(CX, 366, 34, S.youAre, { w: 800, anchor: 'middle' }));
+  const PY = 548, PR = 160;
+  body.push(`<circle cx="${CX + 10}" cy="${PY + 10}" r="${PR}" fill="#000"/><circle cx="${CX}" cy="${PY}" r="${PR}" fill="${p.dish.bg}" stroke="#000" stroke-width="6"/>
+    <circle cx="${CX}" cy="${PY}" r="${PR - 18}" fill="none" stroke="#fff" stroke-opacity="0.7" stroke-width="4"/>
+    <g clip-path="url(#bord)"><g transform="translate(${CX} ${PY + 22}) scale(${PR * 2 / 64})">
+      <g transform="translate(15 -17) rotate(14) scale(1.05)">${plateF}</g>
+      <g transform="translate(-19 -9) rotate(-12) scale(0.62)">${plateF}</g>
+      <g transform="translate(0 4)">${mascot(p.level.key, beltFor(p.dish.bg))}</g></g></g>`);
+  y = 780;
+  body.push(`<g transform="rotate(-2 ${CX} ${y})">
+    <rect x="${CX - nameW / 2 + 9}" y="${y - 50 + 9}" width="${nameW}" height="100" rx="22" fill="#000"/>
+    <rect x="${CX - nameW / 2}" y="${y - 50}" width="${nameW}" height="100" rx="22" fill="${p.dish.bg}" stroke="#000" stroke-width="6"/>
+    ${T(CX, y + nameSize * 0.36, nameSize, name, { w: 900, anchor: 'middle' })}</g>`);
+  body.push(T(CX, 884, 28, p.zin, { w: 700, anchor: 'middle' }));
+  body.push(dash(920));
+
+  // items
+  body.push(T(L, 974, 30, S.ate, { w: 900, ls: 6 }));
+  p.top.forEach((it, i) => { const yy = 1034 + i * 72; body.push(row(yy, it.cat.short, `${it.pct}%`, tile(it.cat, yy))); });
+  y = 1034 + p.top.length * 72;
+  body.push(row(y + 4, S.skipped, `${p.skipPct}%`));
+  body.push(row(y + 58, S.screen, S.hours.replace('{n}', p.hours)));
+  body.push(dash(y + 104));
+
+  // feed review
+  const RY = y + 156;
+  if (review) {
+  body.push(T(L, RY, 30, S.review, { w: 900, ls: 6 }));
+  body.push(`<g transform="translate(${L + 128} ${RY + 132}) scale(3.9)">${DISH_ART[review.stars]()}</g>`);
+  const SX = L + 300;
+  body.push(Array.from({ length: 5 }, (_, i) =>
+    `<path transform="translate(${SX + 32 + i * 72} ${RY + 62}) scale(3.1)" d="${STAR}" fill="${i < review.stars ? '#FFC93C' : '#fff'}" stroke="#000" stroke-width="1.6" stroke-linejoin="round"/>`).join(''));
+  body.push(`<g transform="rotate(-2 ${SX + labW / 2} ${RY + 138})"><rect x="${SX + 6}" y="${RY + 110 + 6}" width="${labW}" height="64" rx="14" fill="#000"/>
+    <rect x="${SX}" y="${RY + 110}" width="${labW}" height="64" rx="14" fill="#FFF1C2" stroke="#000" stroke-width="5"/>
+    ${T(SX + labW / 2, RY + 157, 42, review.label, { w: 900, anchor: 'middle' })}</g>`);
+  body.push(T(SX, RY + 222, 28, S.avg.replace('{n}', grade), { w: 700 }));
+  body.push(dash(RY + 268));
+  }
+
+  // footer
+  const FY = review ? RY + 292 : y + 140;
+  body.push(barcode(name, CX - 230, FY, 460, 64));
+  body.push(T(CX, FY + 108, 30, S.bye, { w: 800, anchor: 'middle' }));
+
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${B_W}" height="${B_H}" viewBox="0 0 ${B_W} ${B_H}">
+  <defs><style>${FONT_CSS} text{font-family:BonFont,Archivo,system-ui,sans-serif}</style>
+    <clipPath id="bord"><circle cx="${CX}" cy="${PY}" r="${PR - 3}"/></clipPath></defs>
+  <rect width="${B_W}" height="${B_H}" fill="#67C27E"/>
+  ${[[70, 120, 1.4], [1010, 300, 1], [60, 1500, 1.1], [1020, 1680, 1.5]].map(([x, y, s]) =>
+    `<path transform="translate(${x} ${y}) scale(${s * 4})" d="M0 -5 L1.3 -1.3 L5 0 L1.3 1.3 L0 5 L-1.3 1.3 L-5 0 L-1.3 -1.3Z" fill="#FFE066" stroke="#000" stroke-width="${1 / (s * 4) * 4}" stroke-linejoin="round"/>`).join('')}
+  <!-- scaled to 90% so the top and bottom stay clear of the story app bars -->
+  <g transform="translate(540 960) scale(0.9) translate(-540 -960) rotate(-1.2 540 960)">
+    <path d="${receiptPath(X0 + 14, Y0 + 14, X1 + 14, Y1 + 14)}" fill="#000"/>
+    <path d="${receiptPath(X0, Y0, X1, Y1)}" fill="#FFFDF7" stroke="#000" stroke-width="6" stroke-linejoin="round"/>
+    ${body.join('\n')}
+  </g>
+</svg>`;
+}
+async function bonnetjePng(svg) {
+  const img = new Image();
+  img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
+  await img.decode();
+  await new Promise(r => setTimeout(r, 120));          // give the embedded font a moment
+  const c = document.createElement('canvas'); c.width = B_W; c.height = B_H;
+  const ctx = c.getContext('2d'); ctx.drawImage(img, 0, 0, B_W, B_H);
+  return new Promise(res => c.toBlob(res, 'image/png'));
+}
+
+
+/* ============================================================
+   Texts, categories and the share link (no personal data: only profile values)
+   ============================================================ */
+const BON_STR = {
+  nl: { title: 'DIGITAAL DIEET', sub: 'JOUW BONNETJE', youAre: 'Jij bent een', ate: 'WAT JE AT', skipped: 'Geskipt', screen: 'Schermtijd',
+        hours: '{n} u/week', review: 'FEEDRECENSIE', avg: 'Gemiddeld cijfer: {n}', bye: 'Eet smakelijk!', file: 'mijn-digitaal-dieet-bonnetje.png',
+        shareTitle: 'Mijn Digitaal Dieet bonnetje', mailSubject: 'Mijn Digitaal Dieet bonnetje', mailBody: 'Dit is mijn bonnetje van de Digitaal Dieet studie:' },
+  en: { title: 'DIGITAL DIET', sub: 'YOUR RECEIPT', youAre: 'You are a', ate: 'WHAT YOU ATE', skipped: 'Skipped', screen: 'Screen time',
+        hours: '{n} h/week', review: 'FEED REVIEW', avg: 'Average rating: {n}', bye: 'Enjoy your meal!', file: 'my-digital-diet-receipt.png',
+        shareTitle: 'My Digital Diet receipt', mailSubject: 'My Digital Diet receipt', mailBody: 'This is my receipt from the Digital Diet study:' }
+};
+const BON_CAT_TEXT = {
+  entertainment: [['Entertainment', 'Sushi'], ['Entertainment', 'Sushi']],
+  lifestyle:     [['Lifestyle', 'Macaron'], ['Lifestyle', 'Macaron']],
+  health:        [['Gezondheid & Welzijn', 'Matcha'], ['Health & Wellbeing', 'Matcha']],
+  fitness:       [['Fitness & Voeding', 'Eitjes'], ['Fitness & Food', 'Egg']],
+  sport:         [['Sport', 'Onigiri'], ['Sport', 'Onigiri']],
+  motivation:    [['Motivatie', 'Omelet'], ['Motivation', 'Omelette']],
+  relationships: [['Relaties', 'Aardbei'], ['Relationships', 'Strawberry']],
+  learning:      [['Leren & Vaardigheden', 'Broccoli'], ['Learning & Skills', 'Broccoli']],
+  news:          [['Nieuws & Samenleving', 'Nigiri'], ['News & Society', 'Nigiri']],
+  ads:           [['Reclame', null], ['Ads', null]],
+  relatable:     [['Relatable', 'Dumpling'], ['Relatable', 'Dumpling']],
+  brainrot:      [['Brainrot', 'Snoepjes'], ['Brainrot', 'Candy']],
+  misleading:    [['Misleidend', null], ['Misleading', null]],
+  negative:      [['Schadelijk', null], ['Harmful', null]],
+  illegal:       [['Illegaal', null], ['Illegal', null]],
+  other:         [['Anders', 'Noedel'], ['Other', 'Noodle']],
+  _bento:        [['Bento', 'Bento'], ['Bento', 'Bento']],
+  _klein:        [['Kleine hapjes', null], ['Small bites', null]]
+};
+const BON_LEVEL_TEXT = {
+  kruimelaar:  [['Kruimelaar', 'Een paar kruimels. Lekker bezig!'], ['Nibbler', 'Just a few crumbs. Nice going!']],
+  fijnproever: [['Fijnproever', 'Je kiest wat je kijkt, en je geniet ervan.'], ['Gourmet', 'You choose what you watch, and enjoy it.']],
+  lekkerbek:   [['Lekkerbek', 'Je smult flink van je scherm.'], ['Foodie', 'You feast on your screen quite a bit.']],
+  hamster:     [['Hamster', 'Je wangen zitten aardig vol.'], ['Hamster', 'Your cheeks are pretty full.']],
+  veelvraat:   [['Veelvraat', 'Je zit vol.'], ['Glutton', 'You are stuffed.']],
+  godzilla:    [['Godzilla', 'Je scherm slokt alles op.'], ['Godzilla', 'Your screen swallows it all.']]
+};
+const BON_REVIEW_TEXT = [['Gevallen bento', 'Dropped bento'], ['Supermarktsushi', 'Supermarket sushi'], ['Ramenkraampje', 'Ramen stall'], ['Sushibar', 'Sushi bar'], ['Sterrenchef', 'Star chef']];
+const catInfo = v => CATS.find(c => c.value === v) || (v === '_klein' ? { value: '_klein', food: 'dango', bg: '#EDEDED' } : FALLBACK);
+
+// p = { d: dish value, l: level key, t: [[value, pct], ...], s: skip %, h: hours/week, a: average rating, p: app, dt: 'YYYYMMDD', lang }
+function bonEncode(p) {
+  const q = new URLSearchParams({ v: '1', d: p.d, l: p.l, t: p.t.map(([v, n]) => `${v}.${n}`).join(','), s: p.s, h: p.h,
+    a: p.a == null ? '' : Math.round(p.a * 10), p: p.p || '', dt: p.dt, lang: p.lang || 'nl' });
+  return q.toString();
+}
+function bonDecode(str) {
+  const q = new URLSearchParams(String(str || '').replace(/^#/, ''));
+  if (q.get('v') !== '1') return null;
+  const num = (k, lo, hi) => { const n = parseInt(q.get(k), 10); return Number.isFinite(n) ? Math.min(hi, Math.max(lo, n)) : null; };
+  const d = q.get('d'), l = q.get('l');
+  if (!BON_CAT_TEXT[d] || !BON_LEVEL_TEXT[l]) return null;
+  const t = (q.get('t') || '').split(',').slice(0, 3).map(x => x.split('.')).filter(([v, n]) => BON_CAT_TEXT[v] && /^\d{1,3}$/.test(n)).map(([v, n]) => [v, Math.min(100, +n)]);
+  const a = num('a', 10, 100);
+  const dt = /^\d{8}$/.test(q.get('dt') || '') ? q.get('dt') : null;
+  return { d, l, t, s: num('s', 0, 100) ?? 0, h: num('h', 0, 168) ?? 0, a: a == null ? null : a / 10,
+           p: (q.get('p') || '').replace(/[^\p{L}\p{N} ._-]/gu, '').slice(0, 20), dt, lang: q.get('lang') === 'en' ? 'en' : 'nl' };
+}
+// Turn link values into everything the drawing needs, in the right language
+function bonResolve(p) {
+  const li = p.lang === 'en' ? 1 : 0;
+  const cat = v => { const c = catInfo(v), [label, naam] = BON_CAT_TEXT[v][li]; return { ...c, short: label, naam }; };
+  const dish = cat(p.d);
+  const [lvName, zin] = BON_LEVEL_TEXT[p.l][li];
+  const word = p.l === 'godzilla' || (p.l === 'hamster' && li) ? lvName : lvName.toLowerCase();
+  const stars = p.a == null ? 0 : starsFor(p.a);
+  const date = p.dt ? new Date(+p.dt.slice(0, 4), +p.dt.slice(4, 6) - 1, +p.dt.slice(6, 8))
+    .toLocaleDateString(li ? 'en-GB' : 'nl-NL', { day: 'numeric', month: 'short', year: 'numeric' }) : '';
+  return { lang: li ? 'en' : 'nl', dish, level: { key: p.l }, name: `${dish.naam}-${word}`, zin,
+           top: p.t.map(([v, n]) => ({ cat: cat(v), pct: n })), skipPct: p.s, hours: p.h, avg: p.a ?? 0,
+           review: stars ? { stars, label: BON_REVIEW_TEXT[stars - 1][li] } : null,
+           app: p.p, date };
+}
+
+async function bonFile(svg, lang) {
+  const blob = await bonnetjePng(svg);
+  return new File([blob], BON_STR[lang].file, { type: 'image/png' });
+}
+// Phone, tablet and most laptop browsers: the device's own share menu. Otherwise: download.
+async function bonShareOrDownload(svg, lang) {
+  const file = await bonFile(svg, lang);
+  if (navigator.canShare && navigator.canShare({ files: [file] })) {
+    try { await navigator.share({ files: [file], title: BON_STR[lang].shareTitle }); return 'shared'; }
+    catch (e) { if (e.name === 'AbortError') return 'cancelled'; }
+  }
+  bonDownload(file); return 'downloaded';
+}
+function bonDownload(file) {
+  const a = document.createElement('a'); a.href = URL.createObjectURL(file); a.download = file.name;
+  document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+}
+function bonQrSvg(url) {
+  const qr = qrcode(0, 'M'); qr.addData(url); qr.make();
+  return qr.createSvgTag({ cellSize: 6, margin: 2, scalable: true });
+}
+  return { bonEncode, bonDecode, bonResolve, bonnetjeSvg, loadFontCss, bonShareOrDownload, bonFile, bonDownload, bonQrSvg, BON_STR, CATS, LEVELS, levelFor };
+})();
+
+/* Public bonnetje page: draws the receipt from the link (#v=1&d=...), nothing is stored or sent anywhere. */
+(async () => {
+  const $ = id => document.getElementById(id);
+  const UI = {
+    nl: { deel: 'Deel je bonnetje', download: 'Download als plaatje', making: 'Bonnetje maken...', done: 'Gedownload.',
+          fail: 'Dat lukte niet. Probeer Download.', over: 'Gemaakt in de Digitaal Dieet studie. Op dit bonnetje staat niets persoonlijks.',
+          bad: 'Dit bonnetje kon niet worden geladen. Controleer of je de hele link hebt gekopieerd.', alt: 'Digitaal Dieet bonnetje' },
+    en: { deel: 'Share your receipt', download: 'Download as image', making: 'Making your receipt...', done: 'Downloaded.',
+          fail: 'That did not work. Try Download.', over: 'Made in the Digital Diet study. There is nothing personal on this receipt.',
+          bad: 'This receipt could not be loaded. Check that you copied the whole link.', alt: 'Digital Diet receipt' }
+  };
+  const raw = BON.bonDecode(location.hash);
+  const lang = raw?.lang || ((navigator.language || '').startsWith('en') ? 'en' : 'nl');
+  const u = UI[lang] || UI.nl;
+  document.documentElement.lang = lang;
+  if (!raw) {
+    ['bon', 'deel', 'download', 'over'].forEach(id => { $(id).hidden = true; });
+    $('fout').hidden = false; $('fout').textContent = u.bad; return;
+  }
+  const p = BON.bonResolve(raw);
+  $('deel').textContent = u.deel; $('download').textContent = u.download; $('over').textContent = u.over; $('bon').alt = `${u.alt}: ${p.name}`;
+  let svg = BON.bonnetjeSvg(p);
+  const show = () => { $('bon').src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg); };
+  show();
+  await document.fonts.ready; await BON.loadFontCss(); svg = BON.bonnetjeSvg(p); show();
+
+  $('deel').addEventListener('click', async () => {
+    $('deel').disabled = true; $('status').textContent = u.making;
+    try { const r = await BON.bonShareOrDownload(svg, p.lang); $('status').textContent = r === 'downloaded' ? u.done : ''; }
+    catch (e) { $('status').textContent = u.fail; }
+    $('deel').disabled = false;
+  });
+  $('download').addEventListener('click', async () => {
+    try { BON.bonDownload(await BON.bonFile(svg, p.lang)); $('status').textContent = u.done; } catch (e) { $('status').textContent = u.fail; }
+  });
+})();
+</script>
+</body>
+</html>
