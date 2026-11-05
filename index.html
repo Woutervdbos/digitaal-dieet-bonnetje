@@ -460,7 +460,7 @@ const barcode = (seed, x, y, w, h) => {
   let n = [...seed].reduce((a, c) => (a * 31 + c.charCodeAt(0)) >>> 0, 7), out = '', cx = x;
   while (cx < x + w) {
     n = (n * 1103515245 + 12345) >>> 0;
-    const bw = 3 + (n >> 8) % 9, gap = 3 + (n >> 16) % 7;
+    const bw = 3 + (n >>> 8) % 9, gap = 3 + (n >>> 16) % 7;
     if (cx + bw > x + w) break;
     out += `<rect x="${cx}" y="${y}" width="${bw}" height="${h}" fill="#000"/>`;
     cx += bw + gap;
@@ -759,7 +759,7 @@ function bonQrSvg(url) {
   const qr = qrcode(0, 'M'); qr.addData(url); qr.make();
   return qr.createSvgTag({ cellSize: 6, margin: 2, scalable: true });
 }
-  return { bonEncode, bonDecode, bonResolve, bonnetjeSvg, loadFontCss, bonShareOrDownload, bonFile, bonDownload, bonQrSvg, BON_STR, CATS, LEVELS, levelFor, BAL_ART };
+  return { bonEncode, bonDecode, bonResolve, bonnetjeSvg, loadFontCss, bonShareOrDownload, bonFile, bonDownload, bonQrSvg, BON_STR, CATS, LEVELS, levelFor, BAL_ART, foodSvg, catInfo };
 })();
 
 /* Public bonnetje page: draws the receipt from the link (#v=1&d=...), nothing is stored or sent anywhere. */
