@@ -60,6 +60,10 @@ const FOOD = {
   banaan: { top: -12, face: [-4.2, 2.6, 0.62], body: `<path d="M-12.5 -8 C-14 7 -1 15 13 4.5 C12.5 0.5 10 -0.5 7.5 1 C0 5 -4.5 0 -5 -8.5 C-5.5 -11.5 -11.5 -11.5 -12.5 -8 Z" fill="#FFE066" ${S}/><path d="M-11.6 -9.6 L-11.4 -13 L-8.2 -11.6 Z" fill="#7A5A2E" stroke="#000" stroke-width="1.6" stroke-linejoin="round"/><path d="M-10 -2 C-9 5 -3 9.5 4 9" fill="none" stroke="#E0B400" stroke-width="1.4" stroke-linecap="round"/>` },
   donut: { top: -12, face: [0, 6.2, 0.55], body: `<circle r="12.5" fill="#E8B26A" ${S}/><path d="M-10.5 -1 C-11 -9 -4 -12 1 -11 C8 -10.5 11.5 -5 10.6 1 C10 4 8 3 7 5.5 C5.5 8 2 6 0 7.5 C-2.5 9 -5 7 -6.5 5.5 C-8.5 3.5 -10.4 3 -10.5 -1 Z" fill="#FF8AD8" stroke="#000" stroke-width="1.8" stroke-linejoin="round"/><circle cy="-2" r="3.4" fill="#fff" stroke="#000" stroke-width="1.8"/><g stroke-width="1.6" stroke-linecap="round"><path d="M-6 -7 l1.6 -1" stroke="#7C5CFF"/><path d="M5 -8 l1.8 0.6" stroke="#67C27E"/><path d="M7 -2 l0.8 1.6" stroke="#FFC93C"/><path d="M-8 -2 l0.6 1.8" stroke="#8EC5FF"/></g>` },
   boba: { top: -12, face: [0, 1.4, 0.7], body: `<path d="M3 -15 L6.5 -6" stroke="#000" stroke-width="4.4" stroke-linecap="round"/><path d="M3 -15 L6.5 -6" stroke="#FF8AD8" stroke-width="2.4" stroke-linecap="round"/><path d="M-9 -6 L9 -6 L7 13 L-7 13 Z" fill="#F3D9B1" ${S}/><ellipse cy="-6" rx="10" ry="2.6" fill="#fff" ${S}/><g fill="#3A2A2A"><circle cx="-4" cy="10" r="1.6"/><circle cx="0" cy="10.6" r="1.6"/><circle cx="4" cy="10" r="1.6"/><circle cx="-2" cy="7.6" r="1.5"/><circle cx="2.2" cy="7.8" r="1.5"/></g>` },
+  koekje: { top: -13, face: [0, -0.5, 0.7], body: `<path d="M-13 5 C-13 -7 -4 -11 0 -4.5 C4 -11 13 -7 13 5 C6 1.5 -6 1.5 -13 5Z" fill="#EDB850" ${S}/><rect x="4" y="-6" width="9" height="4" rx="1" fill="#fff" stroke="#000" stroke-width="1.3" transform="rotate(-18 8 -4)"/>` },
+  peper: { top: -13, face: [-1.5, 0, 0.65], body: `<path d="M-11 -6 C-3 -5 6 -1 10 8 C11 12 6 12.5 4 10 C-1 4 -7 1 -12 0 Z" fill="#EF5454" ${S}/><path d="M-11 -6 C-13 -8 -12 -11 -9 -12.5" stroke="#000" stroke-width="4.2" fill="none" stroke-linecap="round"/><path d="M-11 -6 C-13 -8 -12 -11 -9 -12.5" stroke="#5BBE5F" stroke-width="2" fill="none" stroke-linecap="round"/>` },
+  paddenstoel: { top: -13, face: [0, 7, 0.6], body: `<rect x="-5.5" y="0" width="11" height="12" rx="4" fill="#fff" ${S}/><path d="M-14 2 C-14 -9 -6 -13 0 -13 C6 -13 14 -9 14 2 C8 4 -8 4 -14 2Z" fill="#EF5454" ${S}/><circle cx="-7" cy="-4" r="2.2" fill="#fff"/><circle cx="2" cy="-8.5" r="2" fill="#fff"/><circle cx="7.5" cy="-2" r="2.3" fill="#fff"/>` },
+  kogelvis: { top: -13, face: [-1.5, 0.5, 0.8], body: `<path d="M0 -14v3 M8.5 -10.5l-2 2.5 M-8.5 -10.5l2 2.5 M0 14v-3 M8.5 10.5l-2 -2.5 M-8.5 10.5l2 -2.5 M-14 0h3" stroke="#000" stroke-width="1.8" stroke-linecap="round"/><path d="M9 0 L13.5 -4.5 L13.5 4.5 Z" fill="#FFC93C" stroke="#000" stroke-width="1.6" stroke-linejoin="round"/><circle r="10.5" fill="#FFC93C" ${S}/>` },
   dango:    { top: -12,   face: [0, 0, 0.5],    body: `<path d="M-13 13 L13 -13" stroke="#000" stroke-width="3.6" stroke-linecap="round"/><path d="M-13 13 L13 -13" stroke="#E8C38A" stroke-width="1.6" stroke-linecap="round"/><circle cx="-7" cy="7" r="5.6" fill="#FFB3D1" ${S}/><circle cx="7" cy="-7" r="5.6" fill="#A8E07A" ${S}/><circle r="5.8" fill="#fff" ${S}/>` }
 };
 
@@ -76,12 +80,12 @@ const CATS = [
   ['relationships', 'Relaties', 'aardbei', 'Aardbei', '#FFD3E0'],
   ['learning', 'Leren & Vaardigheden', 'broccoli', 'Broccoli', '#C8F2EC'],
   ['news', 'Nieuws & Samenleving', 'nigiri', 'Nigiri', '#E1E7EF'],
-  ['ads', 'Reclame', null, null, '#FFEFC9'],
+  ['ads', 'Reclame', 'koekje', null, '#FFEFC9'],
   ['relatable', 'Relatable', 'dumpling', 'Dumpling', '#BBA8FF'],
   ['brainrot', 'Brainrot / Low-quality', 'snoep', 'Snoepjes', '#A8EDEA'],
-  ['misleading', 'Misleidend / Fake News', null, null, '#FFE1D6'],
-  ['negative', 'Schadelijk / Toxisch', null, null, '#4A4458'],
-  ['illegal', 'Illegale Content', null, null, '#B9C4D0'],
+  ['misleading', 'Misleidend / Fake News', 'peper', null, '#FFE1D6'],
+  ['negative', 'Schadelijk / Toxisch', 'paddenstoel', null, '#4A4458'],
+  ['illegal', 'Illegale Content', 'kogelvis', null, '#B9C4D0'],
   ['clips', 'Clips & Edits', 'popcorn', 'Popcorn', '#F7B5CA'],
   ['dance', 'Dans', 'donut', 'Donut', '#EDB3F2'],
   ['challenge', 'Challenge', 'ijsje', 'Ijsje', '#8FD3FF'],
@@ -509,7 +513,7 @@ function bonnetjeSvg(p) {
   let y = 0, clipN = 0;
 
   // header
-  out.push(T(CX, y + 114, 78, S.title, { w: 900, anchor: 'middle', ls: 2 }));
+  out.push(T(CX, y + 114, 78, p.kind === 'balans' ? S.titleBal : S.title, { w: 900, anchor: 'middle', ls: 2 }));
   out.push(T(CX, y + 164, 30, p.kind === 'balans' ? S.subBal : S.sub, { w: 800, anchor: 'middle', ls: 10 }));
   out.push(T(CX, y + 208, 26, [p.date, p.app].filter(Boolean).join('  ·  '), { w: 600, anchor: 'middle', fill: '#444' }));
   y += 240; out.push(dash(y));
@@ -605,11 +609,11 @@ async function bonnetjePng(svg) {
    Texts, categories and the share link (no personal data: only profile values)
    ============================================================ */
 const BON_STR = {
-  nl: { title: 'DIGITAAL DIEET', sub: 'JOUW BONNETJE', youAre: 'Jij bent een', ate: 'WAT JE AT', skipped: 'Geskipt', screen: 'Schermtijd',
+  nl: { title: 'DIGITAAL DIEET', titleBal: 'DIGITALE BALANS', sub: 'JOUW BONNETJE', youAre: 'Jij bent een', ate: 'WAT JE AT', skipped: 'Geskipt', screen: 'Schermtijd',
         hours: '{n} u/week', review: 'FEEDRECENSIE', avg: 'Gemiddeld cijfer: {n}', bye: 'Eet smakelijk!', file: 'mijn-digitaal-dieet-bonnetje.png',
         subBal: 'JOUW BALANSBON', balTitle: 'En je balans', nowIdeal: 'nu {n} u, ideaal {w} u', wantMore: 'JE WILT MEER TIJD VOOR', giveUp: 'DAARVOOR LEVER JE IN', nothing: 'Niets extra', byeBal: 'Tot volgende week!', sleep: 'Slaap', sleepVal: '{n} u/nacht',
         shareTitle: 'Mijn Digitaal Dieet bonnetje', mailSubject: 'Mijn Digitaal Dieet bonnetje', mailBody: 'Dit is mijn bonnetje van de Digitaal Dieet studie:' },
-  en: { title: 'DIGITAL DIET', sub: 'YOUR RECEIPT', youAre: 'You are a', ate: 'WHAT YOU ATE', skipped: 'Skipped', screen: 'Screen time',
+  en: { title: 'DIGITAL DIET', titleBal: 'DIGITAL BALANCE', sub: 'YOUR RECEIPT', youAre: 'You are a', ate: 'WHAT YOU ATE', skipped: 'Skipped', screen: 'Screen time',
         hours: '{n} h/week', review: 'FEED REVIEW', avg: 'Average rating: {n}', bye: 'Enjoy your meal!', file: 'my-digital-diet-receipt.png',
         subBal: 'YOUR BALANCE RECEIPT', balTitle: 'And your balance', nowIdeal: 'now {n} h, ideal {w} h', wantMore: 'YOU WANT MORE TIME FOR', giveUp: 'FOR THAT YOU GIVE UP', nothing: 'Nothing extra', byeBal: 'See you next week!', sleep: 'Sleep', sleepVal: '{n} h/night',
         shareTitle: 'My Digital Diet receipt', mailSubject: 'My Digital Diet receipt', mailBody: 'This is my receipt from the Digital Diet study:' }
