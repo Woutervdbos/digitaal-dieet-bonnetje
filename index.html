@@ -562,6 +562,7 @@ function bonnetjeSvg(p) {
     y += 92; out.push(T(CX, y, 28, b.zin, { w: 700, anchor: 'middle' }));
     y += 36; out.push(dash(y));
     out.push(row(y + 60, S.screen, S.nowIdeal.replace('{n}', b.now).replace('{w}', b.want))); y += 120;
+    if (b.sleep != null) { out.push(row(y + 4, S.sleep, S.sleepVal.replace('{n}', b.sleep))); y += 64; }
     const list = b.gap < 0 ? b.less : b.more;
     out.push(T(L, y + 40, 30, b.gap < 0 ? S.giveUp : S.wantMore, { w: 900, ls: 6 }));
     y += 104;
@@ -606,11 +607,11 @@ async function bonnetjePng(svg) {
 const BON_STR = {
   nl: { title: 'DIGITAAL DIEET', sub: 'JOUW BONNETJE', youAre: 'Jij bent een', ate: 'WAT JE AT', skipped: 'Geskipt', screen: 'Schermtijd',
         hours: '{n} u/week', review: 'FEEDRECENSIE', avg: 'Gemiddeld cijfer: {n}', bye: 'Eet smakelijk!', file: 'mijn-digitaal-dieet-bonnetje.png',
-        subBal: 'JOUW BALANSBON', balTitle: 'En je balans', nowIdeal: 'nu {n} u, ideaal {w} u', wantMore: 'JE WILT MEER TIJD VOOR', giveUp: 'DAARVOOR LEVER JE IN', nothing: 'Niets extra', byeBal: 'Tot volgende week!',
+        subBal: 'JOUW BALANSBON', balTitle: 'En je balans', nowIdeal: 'nu {n} u, ideaal {w} u', wantMore: 'JE WILT MEER TIJD VOOR', giveUp: 'DAARVOOR LEVER JE IN', nothing: 'Niets extra', byeBal: 'Tot volgende week!', sleep: 'Slaap', sleepVal: '{n} u/nacht',
         shareTitle: 'Mijn Digitaal Dieet bonnetje', mailSubject: 'Mijn Digitaal Dieet bonnetje', mailBody: 'Dit is mijn bonnetje van de Digitaal Dieet studie:' },
   en: { title: 'DIGITAL DIET', sub: 'YOUR RECEIPT', youAre: 'You are a', ate: 'WHAT YOU ATE', skipped: 'Skipped', screen: 'Screen time',
         hours: '{n} h/week', review: 'FEED REVIEW', avg: 'Average rating: {n}', bye: 'Enjoy your meal!', file: 'my-digital-diet-receipt.png',
-        subBal: 'YOUR BALANCE RECEIPT', balTitle: 'And your balance', nowIdeal: 'now {n} h, ideal {w} h', wantMore: 'YOU WANT MORE TIME FOR', giveUp: 'FOR THAT YOU GIVE UP', nothing: 'Nothing extra', byeBal: 'See you next week!',
+        subBal: 'YOUR BALANCE RECEIPT', balTitle: 'And your balance', nowIdeal: 'now {n} h, ideal {w} h', wantMore: 'YOU WANT MORE TIME FOR', giveUp: 'FOR THAT YOU GIVE UP', nothing: 'Nothing extra', byeBal: 'See you next week!', sleep: 'Sleep', sleepVal: '{n} h/night',
         shareTitle: 'My Digital Diet receipt', mailSubject: 'My Digital Diet receipt', mailBody: 'This is my receipt from the Digital Diet study:' }
 };
 const BON_CAT_TEXT = {
@@ -679,7 +680,7 @@ function bonEncode(p) {
   const pairs = arr => (arr || []).map(([v, n]) => `${v}.${n}`).join(',');
   const q = new URLSearchParams({ v: '1', k: p.k || 'd' });
   if (p.d) Object.entries({ d: p.d, l: p.l, t: pairs(p.t), s: p.s, h: p.h, a: p.a == null ? '' : Math.round(p.a * 10) }).forEach(([k, v]) => q.set(k, v));
-  if (p.bl) Object.entries({ bl: p.bl, bg: p.bg, ba: p.ba || '', bm: pairs(p.bm), bx: pairs(p.bx), bn: p.bn, bw: p.bw }).forEach(([k, v]) => q.set(k, v));
+  if (p.bl) Object.entries({ bl: p.bl, bg: p.bg, ba: p.ba || '', bm: pairs(p.bm), bx: pairs(p.bx), bn: p.bn, bw: p.bw, sl: p.sl == null ? '' : Math.round(p.sl * 10) }).forEach(([k, v]) => q.set(k, v));
   q.set('p', p.p || ''); q.set('dt', p.dt || ''); q.set('lang', p.lang || 'nl');
   return q.toString();
 }
@@ -702,7 +703,7 @@ function bonDecode(str) {
     if (!BAL_LEVEL[bl]) return null;
     const acts = key => (q.get(key) || '').split(',').slice(0, 3).map(x => x.split('.')).filter(([v, n]) => BAL_ACT[v] && /^\d{1,3}$/.test(n)).map(([v, n]) => [v, +n]);
     Object.assign(out, { bl, bg: num('bg', -168, 168) ?? 0, ba: BAL_ADJ_T[q.get('ba')] ? q.get('ba') : null,
-      bm: acts('bm'), bx: acts('bx'), bn: num('bn', 0, 168) ?? 0, bw: num('bw', 0, 168) ?? 0 });
+      bm: acts('bm'), bx: acts('bx'), bn: num('bn', 0, 168) ?? 0, bw: num('bw', 0, 168) ?? 0, sl: num('sl', 0, 240) });
   }
   return out;
 }
@@ -725,6 +726,7 @@ function bonResolve(p) {
   if (p.bl) {
     const lv = BAL_LEVEL[p.bl];
     out.bal = { level: { key: p.bl, tilt: lv.tilt, bg: lv.bg }, gap: p.bg, now: p.bn, want: p.bw, more: p.bm, less: p.bx,
+      sleep: p.sl == null ? null : (p.sl / 10).toFixed(1).replace(/\.0$/, '').replace('.', li ? '.' : ','),
       name: balName(p.bl, p.ba, li), zin: p.bg < 0 ? BAL_MORE_ZIN[li] : lv.zin[li], act: id => BAL_ACT[id][li] };
   }
   // the file name and receipt title follow the kind
