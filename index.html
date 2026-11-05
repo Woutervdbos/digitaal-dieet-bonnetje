@@ -54,6 +54,12 @@ const FOOD = {
   dumpling: { top: -7,    face: [0, 2, 0.8],    body: `<path d="M-14 6 C-13 -9 13 -9 14 6 C9 9 -9 9 -14 6Z" fill="#fff" ${S}/><path d="M-7 -4 l1.4 3 M-2.4 -6 l0.9 3.1 M2.4 -6 l-0.9 3.1 M7 -4 l-1.4 3" stroke="#000" stroke-width="1.4" stroke-linecap="round"/>` },
   snoep:    { top: -8.5,  face: [0, 0, 0.75],   body: `<path d="M-7 0 L-14 -7 L-14 7 Z M7 0 L14 -7 L14 7 Z" fill="#FFC93C" stroke="#000" stroke-width="1.8" stroke-linejoin="round"/><circle r="8.5" fill="#FF6FAE" ${S}/>` },
   noedels:  { top: -10,   face: [0, 3.5, 0.8],  body: `<path d="M-10 -3 C-10 -10 -4 -10 -4 -3 M-4 -3 C-4 -12.5 3 -12.5 3 -3 M3 -3 C3 -10 10 -10 10 -3" fill="#FFD66B" stroke="#000" stroke-width="1.6"/><path d="M-14 -3 H14 C14 7 7 12 0 12 C-7 12 -14 7 -14 -3Z" fill="#8EC5FF" ${S}/>` },
+  popcorn: { top: -12, face: [0, 5, 0.72], body: `<path d="M-10 -3 L10 -3 L7.5 13 L-7.5 13 Z" fill="#fff" ${S}/><path d="M-6.5 -3 L-3.5 -3 L-3 13 L-5.4 13 Z M1.6 -3 L4.6 -3 L3.6 13 L1.2 13 Z" fill="#E5484D"/><path d="M-10 -3 L10 -3 L7.5 13 L-7.5 13 Z" fill="none" ${S}/><g fill="#FFF3C4" stroke="#000" stroke-width="1.6"><circle cx="-7" cy="-5" r="3.6"/><circle cx="7" cy="-5" r="3.6"/><circle cx="-2.6" cy="-8" r="3.8"/><circle cx="2.8" cy="-8.4" r="3.6"/><circle cx="0" cy="-4.6" r="3.4"/></g>` },
+  pizza: { top: -12, face: [0, 0.6, 0.62], body: `<path d="M-12 -8 Q0 -13 12 -8 L0 13 Z" fill="#FFD66B" ${S}/><path d="M-12 -8 Q0 -13 12 -8" fill="none" stroke="#000" stroke-width="5.6" stroke-linecap="round"/><path d="M-12 -8 Q0 -13 12 -8" fill="none" stroke="#E8A35A" stroke-width="3" stroke-linecap="round"/><g fill="#E5484D" stroke="#000" stroke-width="1.4"><circle cx="-4.5" cy="-3" r="2.4"/><circle cx="4.6" cy="-2.4" r="2.2"/><circle cx="0.4" cy="5.5" r="1.9"/></g>` },
+  ijsje: { top: -12, face: [0, -4.8, 0.75], body: `<path d="M-7.5 1 L7.5 1 L0 14 Z" fill="#E8B26A" ${S}/><path d="M-4.5 3.5 L2.5 11 M0.5 1.6 L4.6 6 M-2.5 1.6 L-4.2 4.6 M4.2 3 L-1.6 9.6" stroke="#B9803B" stroke-width="1.2"/><path d="M-9.5 1.5 C-12 -3 -9 -12 0 -12.5 C9 -12 12 -3 9.5 1.5 C6 3.5 -6 3.5 -9.5 1.5 Z" fill="#FFB3D1" ${S}/><path d="M4.5 1.8 v3.4 a1.5 1.5 0 0 0 3 0 v-4.4" fill="#FFB3D1" stroke="#000" stroke-width="1.6" stroke-linejoin="round"/>` },
+  banaan: { top: -12, face: [-4.2, 2.6, 0.62], body: `<path d="M-12.5 -8 C-14 7 -1 15 13 4.5 C12.5 0.5 10 -0.5 7.5 1 C0 5 -4.5 0 -5 -8.5 C-5.5 -11.5 -11.5 -11.5 -12.5 -8 Z" fill="#FFE066" ${S}/><path d="M-11.6 -9.6 L-11.4 -13 L-8.2 -11.6 Z" fill="#7A5A2E" stroke="#000" stroke-width="1.6" stroke-linejoin="round"/><path d="M-10 -2 C-9 5 -3 9.5 4 9" fill="none" stroke="#E0B400" stroke-width="1.4" stroke-linecap="round"/>` },
+  donut: { top: -12, face: [0, 6.2, 0.55], body: `<circle r="12.5" fill="#E8B26A" ${S}/><path d="M-10.5 -1 C-11 -9 -4 -12 1 -11 C8 -10.5 11.5 -5 10.6 1 C10 4 8 3 7 5.5 C5.5 8 2 6 0 7.5 C-2.5 9 -5 7 -6.5 5.5 C-8.5 3.5 -10.4 3 -10.5 -1 Z" fill="#FF8AD8" stroke="#000" stroke-width="1.8" stroke-linejoin="round"/><circle cy="-2" r="3.4" fill="#fff" stroke="#000" stroke-width="1.8"/><g stroke-width="1.6" stroke-linecap="round"><path d="M-6 -7 l1.6 -1" stroke="#7C5CFF"/><path d="M5 -8 l1.8 0.6" stroke="#67C27E"/><path d="M7 -2 l0.8 1.6" stroke="#FFC93C"/><path d="M-8 -2 l0.6 1.8" stroke="#8EC5FF"/></g>` },
+  boba: { top: -12, face: [0, 1.4, 0.7], body: `<path d="M3 -15 L6.5 -6" stroke="#000" stroke-width="4.4" stroke-linecap="round"/><path d="M3 -15 L6.5 -6" stroke="#FF8AD8" stroke-width="2.4" stroke-linecap="round"/><path d="M-9 -6 L9 -6 L7 13 L-7 13 Z" fill="#F3D9B1" ${S}/><ellipse cy="-6" rx="10" ry="2.6" fill="#fff" ${S}/><g fill="#3A2A2A"><circle cx="-4" cy="10" r="1.6"/><circle cx="0" cy="10.6" r="1.6"/><circle cx="4" cy="10" r="1.6"/><circle cx="-2" cy="7.6" r="1.5"/><circle cx="2.2" cy="7.8" r="1.5"/></g>` },
   dango:    { top: -12,   face: [0, 0, 0.5],    body: `<path d="M-13 13 L13 -13" stroke="#000" stroke-width="3.6" stroke-linecap="round"/><path d="M-13 13 L13 -13" stroke="#E8C38A" stroke-width="1.6" stroke-linecap="round"/><circle cx="-7" cy="7" r="5.6" fill="#FFB3D1" ${S}/><circle cx="7" cy="-7" r="5.6" fill="#A8E07A" ${S}/><circle r="5.8" fill="#fff" ${S}/>` }
 };
 
@@ -76,6 +82,12 @@ const CATS = [
   ['misleading', 'Misleidend / Fake News', null, null, '#FFE1D6'],
   ['negative', 'Schadelijk / Toxisch', null, null, '#4A4458'],
   ['illegal', 'Illegale Content', null, null, '#B9C4D0'],
+  ['clips', 'Clips & Edits', 'popcorn', 'Popcorn', '#F7B5CA'],
+  ['dance', 'Dans', 'donut', 'Donut', '#EDB3F2'],
+  ['challenge', 'Challenge', 'ijsje', 'Ijsje', '#8FD3FF'],
+  ['glowup', 'Glow-up', 'boba', 'Boba', '#FFD9B0'],
+  ['animals', 'Dieren', 'banaan', 'Banaan', '#D4E6A1'],
+  ['live', 'Live', 'pizza', 'Pizza', '#FF9E9E'],
   ['other', 'Anders', 'noedels', 'Noedel', '#FFFFFF']
 ].map(([value, label, food, naam, bg]) => ({ value, label, food, naam, bg }));
 const FALLBACK = { value: '_bento', label: 'Bento', food: 'dango', naam: 'Bento', bg: '#EDEDED' };
@@ -443,6 +455,12 @@ const BON_CAT_TEXT = {
   misleading:    [['Misleidend', null], ['Misleading', null]],
   negative:      [['Schadelijk', null], ['Harmful', null]],
   illegal:       [['Illegaal', null], ['Illegal', null]],
+  clips:         [['Clips & Edits', 'Popcorn'], ['Clips & Edits', 'Popcorn']],
+  dance:         [['Dans', 'Donut'], ['Dance', 'Donut']],
+  challenge:     [['Challenge', 'Ijsje'], ['Challenge', 'Ice cream']],
+  glowup:        [['Glow-up', 'Boba'], ['Glow-up', 'Boba']],
+  animals:       [['Dieren', 'Banaan'], ['Animals', 'Banana']],
+  live:          [['Live', 'Pizza'], ['Live', 'Pizza']],
   other:         [['Anders', 'Noedel'], ['Other', 'Noodle']],
   _bento:        [['Bento', 'Bento'], ['Bento', 'Bento']],
   _klein:        [['Kleine hapjes', null], ['Small bites', null]]
